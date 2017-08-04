@@ -21,18 +21,19 @@ var isWPressed = false;
 var isSPressed = false;
 
 var tank;
-var dude;
+var dudes = [];
 var skeleteon;
 var canRun = false;
 
 document.addEventListener("DOMContentLoaded", startGame, false);
 
 function startGame() {
-
+    
     if (BABYLON.Engine.isSupported()) {
         canvas = document.getElementById("renderCanvas");
         engine = new BABYLON.Engine(canvas, true);
         scene = new BABYLON.Scene(engine);
+        engine.displayLoadingUI();
         light = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
         followCamera = new BABYLON.FollowCamera("Follow", new BABYLON.Vector3(0, 100, 15), scene);
 
@@ -73,12 +74,16 @@ function startGame() {
         function groundCreated(ground) {
             ground.checkCollisions = true;
             ground.material = materialGround;
-        //      materialGround.wireframe = true;
+        //  materialGround.wireframe = true;
             ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.HeightmapImpostor, { mass: 0, restitution: 0 , friction:.1 }, scene);
-
             createHero();
-            loadDude();
+            loadDudes(4);
             canRun = true;
+            setTimeout(function () {
+                engine.hideLoadingUI();
+                
+            }, 2000);
+
         }
 
 
@@ -88,11 +93,13 @@ function startGame() {
         engine.runRenderLoop(function () {
             if (!canRun) return;
             // This is because without this the tank collides with the ground and bounces strangely. dont know why the "2" though, just trial and error. 
+            if(tank.position.y < 1)
             tank.physicsImpostor.applyForce(new BABYLON.Vector3(0, tank.physicsImpostor.mass * scene.gravity.y*-1 *2, 0), tank.getAbsolutePosition());
             scene.render();
             handleMouseFreeCameraRotation();
             handleKeyboardFreeCameraRotation();
             handleKeyboardMeshInputs(tank);
+
 
         });
 
@@ -149,9 +156,12 @@ function addListeners() {
             var CannonBall = BABYLON.Mesh.CreateSphere("s", 30, 5, scene, false);
             CannonBall.position = tank.position.add(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(15, 15, 15).negate()));
             CannonBall.physicsImpostor = new BABYLON.PhysicsImpostor(CannonBall, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 5, friction: 10, restitution: .2 }, scene);
-            CannonBall.physicsImpostor.setLinearVelocity(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(1000, 1000, 1000).negate()));
+            CannonBall.physicsImpostor.setLinearVelocity(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(1000, 0, 1000).negate()));
             CannonBall.material = materialWood;
-
+            setTimeout(function () {
+                CannonBall.dispose();
+            }, 3000);
+            
         }
 
     });
@@ -290,7 +300,7 @@ function createHero()
     tankMadfa3.position.z -=.5;
     tankMadfa3.position.y += 1;
     tankMadfa3.material = materialWood;
-
+    
     tankMadfa3.parent = tank;
 
   //  var newTank = BABYLON.Mesh.MergeMeshes([tank,tankMadfa3]);
@@ -318,12 +328,11 @@ function createHero()
 
  //   tank.physicsImpostor.physicsBody.collisionResponse = false;
 
-    tank.showBoundingBox = true;
 
 
 }
 
-function calculateBoundingBox(newMeshes) {
+function calculateBoundingBoxOfCompositeMeshes(newMeshes) {
     var minx = 10000; var miny = 10000; var minz = 10000; var maxx = -10000; var maxy = -10000; var maxz = -10000;
 
     for (var i = 0 ; i < newMeshes.length ; i++) {
@@ -362,27 +371,83 @@ function calculateBoundingBox(newMeshes) {
 }
 
 
-function loadDude()
+function loadDudes(numDudes)
 {
+    var dude, clones = [];
+
+    // Dude
     BABYLON.SceneLoader.ImportMesh("him", "scenes/", "Dude.babylon", scene, function (newMeshes, particleSystems, skeletons) {
-
-        var boundingBox = calculateBoundingBox(newMeshes);
-        console.log(boundingBox);
-
         dude = newMeshes[0];
+        var boundingBox = calculateBoundingBoxOfCompositeMeshes(newMeshes);
+        dude.skeletons = [];
 
-        dude.physicsImpostor = new BABYLON.PhysicsImpostor(dude, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 1000, friction: 10, restitution: 0 }, scene);
+        for (var i = 0; i < skeletons.length; i += 1) {
+            dude.skeletons[i] = skeletons[i];
+            scene.beginAnimation(dude.skeletons[i], 0, 120, 1.0, true);
+        }
 
-        dude.position = new BABYLON.Vector3(0, (boundingBox.min.y + boundingBox.max.y) / 2.0, -300);
-        skeletons[0].position = new BABYLON.Vector3(0, (boundingBox.min.y + boundingBox.max.y) / 2.0, -300);
+        dude.position.z -= 200;
 
-        dude.setBoundingInfo(new BABYLON.BoundingInfo(new BABYLON.Vector3(boundingBox.min.x, boundingBox.min.y, boundingBox.min.z),
-       new BABYLON.Vector3(boundingBox.max.x, boundingBox.max.y, boundingBox.max.z)));
-        console.log(dude.getBoundingInfo());
-        dude.physicsImpostor.forceUpdate();
-        dude.showBoundingBox = true;
+        for (var t = 1 ; t < numDudes ; t++) {
+            clone();
+        }
+                addPhysicsToDude(dude, boundingBox);
 
-        scene.beginAnimation(skeletons[0], 0, 120, 1.0, true);
-      
+                for(var k = 0 ; k < clones.length; k++)
+                {
+                    addPhysicsToDude(clones[k], boundingBox);
+                }
+
+            
+
     });
+
+    function clone() {
+        //create clone..
+
+        var id = clones.length;
+        var xrand = Math.floor(Math.random() * 1001) - 500;
+        var zrand = Math.floor(Math.random() * 1001) - 500;
+        console.log(xrand , zrand)
+
+        clones[id] = dude.clone("clone_" + id);
+        clones[id].skeletons = [];
+
+        for (var i = 0; i < dude.skeletons.length; i += 1) {
+            clones[id].skeletons[i] = dude.skeletons[i].clone("skeleton clone #" + i);
+            scene.beginAnimation(clones[id].skeletons[i], 0, 120, 1.0, true);
+        }
+
+        if (dude._children) {
+            //dude is a parent mesh with multiple _children.
+
+            for (var i = 0; i < dude._children.length; i += 1) {
+                if (clones[id].skeletons.length > 1) //Mostlikely a seperate skeleton for each child mesh..
+                    clones[id]._children[i].skeleton = clones[id].skeletons[i];
+                else //Mostlikely a single skeleton for all child meshes.
+                    clones[id]._children[i].skeleton = clones[id].skeletons[0];
+            }
+
+        } else {
+            //dude is a single mesh with no _children
+            clones[id].skeleton = clones[id].skeletons[0];
+        }
+
+
+        clones[id].position = new BABYLON.Vector3(xrand, 2  , zrand);
+
+
+    }//Clone func
+
+}
+
+function addPhysicsToDude(dude,boundingBox)
+{
+    dude.physicsImpostor = new BABYLON.PhysicsImpostor(dude, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 30000, friction: 10, restitution: 0 }, scene);
+    dude.position.y = 2*dude.scaling.y;// = new BABYLON.Vector3(0, 2 * dude.scaling.y, dude.position.z);
+    dude.skeletons[0].position = new BABYLON.Vector3(dude.position.x, 2 * dude.scaling.y, dude.position.z);
+    dude.setBoundingInfo(new BABYLON.BoundingInfo(new BABYLON.Vector3(boundingBox.min.x, boundingBox.min.y, boundingBox.min.z),
+   new BABYLON.Vector3(boundingBox.max.x, boundingBox.max.y, boundingBox.max.z)));
+    dude.physicsImpostor.forceUpdate();
+    dude.showBoundingBox = true;
 }
