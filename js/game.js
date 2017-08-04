@@ -23,7 +23,7 @@ var isSPressed = false;
 var tank;
 var dude;
 var skeleteon;
-
+var canRun = false;
 
 document.addEventListener("DOMContentLoaded", startGame, false);
 
@@ -70,47 +70,23 @@ function startGame() {
         var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "images/height1.png", 5000, 5000, 200, 0, 400, scene, false, groundCreated);
    //     var ground = BABYLON.Mesh.CreateGround("ground", 5000, 5000, 400, scene);
 
-        createHero();
-
         function groundCreated(ground) {
             ground.checkCollisions = true;
             ground.material = materialGround;
         //      materialGround.wireframe = true;
             ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.HeightmapImpostor, { mass: 0, restitution: 0 , friction:.1 }, scene);
-            
+
+            createHero();
+            loadDude();
+            canRun = true;
         }
 
 
-        BABYLON.SceneLoader.ImportMesh("him", "scenes/", "Dude.babylon", scene, function (newMeshes, particleSystems, skeletons) {
-            player = newMeshes[0];
-            player.physicsImpostor = new BABYLON.PhysicsImpostor(player, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 100, friction: 0.5, restitution: 1 }, scene);
-            for (var i = 1, len = newMeshes.length; i < len; i++) {
-                newMeshes[i].parent = player;
-                newMeshes[i].physicsImpostor = new BABYLON.PhysicsImpostor(newMeshes[i], BABYLON.PhysicsImpostor.BoxImpostor, { mass: 10, friction: 0.5, restitution: 1 }, scene);
-                newMeshes[i].showBoundingBox = true;
-            }
 
-           
-            player.position = new BABYLON.Vector3(0, 50, -300);
-            skeletons[0].position = new BABYLON.Vector3(0, 50, -300);
-           // player.scaling = new BABYLON.Vector3(.5, .5, .5);
-            //  skeletons[0].scaling = new BABYLON.Vector3(.5, .5, .5);
-
-            var MinBoundingInfo = player.getBoundingInfo().minimum;
-            var MaxBoundingInfo = player.getBoundingInfo().maximum;
-
-            console.log(MinBoundingInfo);
-            console.log(MaxBoundingInfo);
-
-            player.physicsImpostor.forceUpdate();
-            player.showBoundingBox = true;
-
-            scene.beginAnimation(skeletons[0], 0, 120, 1.0, true);
-        });
 
 
         engine.runRenderLoop(function () {
-
+            if (!canRun) return;
             // This is because without this the tank collides with the ground and bounces strangely. dont know why the "2" though, just trial and error. 
             tank.physicsImpostor.applyForce(new BABYLON.Vector3(0, tank.physicsImpostor.mass * scene.gravity.y*-1 *2, 0), tank.getAbsolutePosition());
             scene.render();
@@ -171,7 +147,7 @@ function addListeners() {
         if(event.key == 'b' || event.key =='B')
         {
             var CannonBall = BABYLON.Mesh.CreateSphere("s", 30, 5, scene, false);
-            CannonBall.position = tank.position.add(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(10, 10, 10).negate()));
+            CannonBall.position = tank.position.add(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(15, 15, 15).negate()));
             CannonBall.physicsImpostor = new BABYLON.PhysicsImpostor(CannonBall, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 5, friction: 10, restitution: .2 }, scene);
             CannonBall.physicsImpostor.setLinearVelocity(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(1000, 1000, 1000).negate()));
             CannonBall.material = materialWood;
@@ -326,22 +302,87 @@ function createHero()
    tankBoundingBox.parent = tank;
 
    // tank.checkCollisions = true;
-    tank.physicsImpostor = new BABYLON.PhysicsImpostor(tank, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 100,friction:.2, restitution: 0.0 }, scene);
+    tank.physicsImpostor = new BABYLON.PhysicsImpostor(tank, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 200,friction:.5, restitution: 0.0 }, scene);
 
-    //var test = BABYLON.Mesh.CreateSphere("test1", 20,20, scene, true);
-    //test.physicsImpostor = new BABYLON.PhysicsImpostor(test, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 10, friction: 10, restitution: .2 }, scene);
+    var test = BABYLON.Mesh.CreateSphere("test1", 20,20, scene, true);
+    test.physicsImpostor = new BABYLON.PhysicsImpostor(test, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 10, friction: 10, restitution: .2 }, scene);
 
-    //test.position.z -= 80;
-    //test.position.y += 10;
-    //// test.checkCollisions = true;
-    //test.material = materialAmiga;
-    //materialAmiga.wireframe = true;
+    test.position.z -= 80;
+    test.position.y += 10;
+    test.position.x -= 100;
+    // test.checkCollisions = true;
+    test.material = materialAmiga;
+    materialAmiga.wireframe = true;
 
-    //tank.physicsImpostor.physicsBody.collisionResponse = false;
+
+
+ //   tank.physicsImpostor.physicsBody.collisionResponse = false;
 
     tank.showBoundingBox = true;
-    console.log(tank.getBoundingInfo());
-    //  console.log(new BABYLON.VertexData.ExtractFromGeometry(tank).positions);
+
+
+}
+
+function calculateBoundingBox(newMeshes) {
+    var minx = 10000; var miny = 10000; var minz = 10000; var maxx = -10000; var maxy = -10000; var maxz = -10000;
+
+    for (var i = 0 ; i < newMeshes.length ; i++) {
+
+        var positions = new BABYLON.VertexData.ExtractFromGeometry(newMeshes[i]).positions;
+
+        if (!positions) continue;
+        var index = 0;
+
+        for (var j = index ; j < positions.length ; j += 3) {
+            if (positions[j] < minx)
+                minx = positions[j];
+            if (positions[j] > maxx)
+                maxx = positions[j];
+        }
+        index = 1;
+
+        for (var j = index ; j < positions.length ; j += 3) {
+            if (positions[j] < miny)
+                miny = positions[j];
+            if (positions[j] > maxy)
+                maxy = positions[j];
+        }
+        index = 2;
+        for (var j = index ; j < positions.length ; j += 3) {
+            if (positions[j] < minz)
+                minz = positions[j];
+            if (positions[j] > maxz)
+                maxz = positions[j];
+        }
+
+    }
+
+    return { min: { x: minx, y: miny, z: minz }, max: { x: maxx, y: maxy, z: maxz } };
+
 }
 
 
+function loadDude()
+{
+    BABYLON.SceneLoader.ImportMesh("him", "scenes/", "Dude.babylon", scene, function (newMeshes, particleSystems, skeletons) {
+
+        var boundingBox = calculateBoundingBox(newMeshes);
+        console.log(boundingBox);
+
+        dude = newMeshes[0];
+
+        dude.physicsImpostor = new BABYLON.PhysicsImpostor(dude, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 1000, friction: 10, restitution: 0 }, scene);
+
+        dude.position = new BABYLON.Vector3(0, (boundingBox.min.y + boundingBox.max.y) / 2.0, -300);
+        skeletons[0].position = new BABYLON.Vector3(0, (boundingBox.min.y + boundingBox.max.y) / 2.0, -300);
+
+        dude.setBoundingInfo(new BABYLON.BoundingInfo(new BABYLON.Vector3(boundingBox.min.x, boundingBox.min.y, boundingBox.min.z),
+       new BABYLON.Vector3(boundingBox.max.x, boundingBox.max.y, boundingBox.max.z)));
+        console.log(dude.getBoundingInfo());
+        dude.physicsImpostor.forceUpdate();
+        dude.showBoundingBox = true;
+
+        scene.beginAnimation(skeletons[0], 0, 120, 1.0, true);
+      
+    });
+}
