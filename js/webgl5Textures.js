@@ -209,7 +209,7 @@ function start() {
 
         mat4.identity(modelViewMatrix);
 
-        mat4.translate(modelViewMatrix, modelViewMatrix,[0.0, 0.0, -1]);
+        mat4.translate(modelViewMatrix, modelViewMatrix,[0.0, 0.0, -7]);
         
         mat4.rotateY(modelViewMatrix,modelViewMatrix, angle);
 

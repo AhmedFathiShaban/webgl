@@ -58,13 +58,32 @@
     <AppxManifest Include="package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <Content Include="babylonjs.mp4" />
     <Content Include="game.html" />
     <Content Include="images\checker_large.gif" />
     <Content Include="images\height1.png" />
     <Content Include="images\webgl-logo-256.jpg" />
+    <Content Include="js\coding4fun.js" />
+    <Content Include="js\qrcode.js" />
+    <Content Include="js\randomTests.js" />
     <Content Include="js\webgl3.js" />
     <Content Include="js\webgl4.js" />
     <Content Include="js\webgl5Textures.js" />
+    <Content Include="randomTests.html" />
+    <Content Include="scenes\0.jpg" />
+    <Content Include="scenes\1.jpg" />
+    <Content Include="scenes\2.jpg" />
+    <Content Include="scenes\3.jpg" />
+    <Content Include="scenes\Dude.babylon" />
+    <Content Include="textures\normalMap.jpg" />
+    <Content Include="textures\Refcube_nx.jpg" />
+    <Content Include="textures\Refcube_ny.jpg" />
+    <Content Include="textures\Refcube_nz.jpg" />
+    <Content Include="textures\Refcube_px.jpg" />
+    <Content Include="textures\Refcube_py.jpg" />
+    <Content Include="textures\Refcube_pz.jpg" />
+    <Content Include="textures\Tree.png" />
+    <Content Include="textures\wood.jpg" />
     <Content Include="webgl1.html" />
     <Content Include="webgl2.html" />
     <Content Include="images\LockScreenLogo.scale-200.png" />

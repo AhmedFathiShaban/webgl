@@ -24,7 +24,8 @@ var tank;
 var dudes = [];
 var skeleteon;
 var canRun = false;
-
+const GRAVITY_VECTOR = new BABYLON.Vector3(0, 0, 0);
+const NEG_Z_VECTOR = new BABYLON.Vector3(0, 0, -1);
 document.addEventListener("DOMContentLoaded", startGame, false);
 
 function startGame() {
@@ -34,21 +35,22 @@ function startGame() {
         engine = new BABYLON.Engine(canvas, true);
         scene = new BABYLON.Scene(engine);
         engine.displayLoadingUI();
-        light = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
+        light = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 100, 100), scene);
         followCamera = new BABYLON.FollowCamera("Follow", new BABYLON.Vector3(0, 100, 15), scene);
 
-      freeCamera = new BABYLON.FreeCamera("FreeCamera", new BABYLON.Vector3(0, 100, 15), scene);
-      freeCamera.keysUp.push('w'.charCodeAt(0)); // "w"
-      freeCamera.keysUp.push('W'.charCodeAt(0)); // "w"
+        freeCamera = new BABYLON.FreeCamera("FreeCamera", new BABYLON.Vector3(0, 200, 0), scene);
         
-      freeCamera.keysDown.push('s'.charCodeAt(0));
-      freeCamera.keysDown.push('S'.charCodeAt(0));
+      //freeCamera.keysUp.push('w'.charCodeAt(0)); // "w"
+      //freeCamera.keysUp.push('W'.charCodeAt(0)); // "w"
+        
+      //freeCamera.keysDown.push('s'.charCodeAt(0));
+      //freeCamera.keysDown.push('S'.charCodeAt(0));
 
-      freeCamera.keysRight.push('d'.charCodeAt(0));
-      freeCamera.keysRight.push('D'.charCodeAt(0));
+      //freeCamera.keysRight.push('d'.charCodeAt(0));
+      //freeCamera.keysRight.push('D'.charCodeAt(0));
 
-      freeCamera.keysLeft.push('a'.charCodeAt(0));
-      freeCamera.keysLeft.push('A'.charCodeAt(0));
+      //freeCamera.keysLeft.push('a'.charCodeAt(0));
+      //freeCamera.keysLeft.push('A'.charCodeAt(0));
       freeCamera.speed *= 5;
      //   followCamera.checkCollisions = true;
         followCamera.attachControl(canvas, true);
@@ -75,14 +77,15 @@ function startGame() {
             ground.checkCollisions = true;
             ground.material = materialGround;
         //  materialGround.wireframe = true;
-            ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.HeightmapImpostor, { mass: 0, restitution: 0 , friction:.1 }, scene);
+          //  ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.HeightmapImpostor, { mass: 0, restitution: 0 , friction:.1 }, scene);
             createHero();
-            loadDudes(4);
+            freeCamera.lockedTarget = tank;
+            dudes = loadDudes(20);
             canRun = true;
             setTimeout(function () {
                 engine.hideLoadingUI();
                 
-            }, 2000);
+            }, 1000);
 
         }
 
@@ -93,13 +96,18 @@ function startGame() {
         engine.runRenderLoop(function () {
             if (!canRun) return;
             // This is because without this the tank collides with the ground and bounces strangely. dont know why the "2" though, just trial and error. 
-            if(tank.position.y < 1)
-            tank.physicsImpostor.applyForce(new BABYLON.Vector3(0, tank.physicsImpostor.mass * scene.gravity.y*-1 *2, 0), tank.getAbsolutePosition());
-            scene.render();
+            
             handleMouseFreeCameraRotation();
-            handleKeyboardFreeCameraRotation();
+           // handleKeyboardFreeCameraRotation();
             handleKeyboardMeshInputs(tank);
+            tank.position.y = 2;
+               dudes.forEach(function (dude) {
+                updateDudeOrientationsAndRotations(dude);
+          });
 
+            scene.render();
+
+            
 
         });
 
@@ -158,6 +166,7 @@ function addListeners() {
             CannonBall.physicsImpostor = new BABYLON.PhysicsImpostor(CannonBall, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 5, friction: 10, restitution: .2 }, scene);
             CannonBall.physicsImpostor.setLinearVelocity(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(1000, 0, 1000).negate()));
             CannonBall.material = materialWood;
+           
             setTimeout(function () {
                 CannonBall.dispose();
             }, 3000);
@@ -237,7 +246,7 @@ function handleKeyboardFreeCameraRotation()
 function handleKeyboardMeshInputs(mesh) {
 
     if (mesh) {
-        var rotationSensitivity = .7;
+        var rotationSensitivity = 1.7;
 
         if (isAPressed) {
             mesh.yRotation -= .01 * rotationSensitivity;
@@ -257,13 +266,13 @@ function handleKeyboardMeshInputs(mesh) {
        //     mesh.position.x -=  mesh.frontVector.x;  // doing it that way doesnot handle collisions and objects penetrate
             //    mesh.position.z -= mesh.frontVector.z;
             
-            mesh.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(Number(mesh.frontVector.x) * -1 * mesh.velocity, Number(mesh.frontVector.y) * mesh.velocity, Number(mesh.frontVector.z) *-1* mesh.velocity));
-            
+           // mesh.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(Number(mesh.frontVector.x) * -1 * mesh.velocity, (Number(mesh.frontVector.y)+1) * mesh.velocity, Number(mesh.frontVector.z) *-1* mesh.velocity));
+            mesh.moveWithCollisions(mesh.frontVector.negate().multiplyByFloats(mesh.velocity, mesh.velocity, mesh.velocity).add(GRAVITY_VECTOR));
         }
 
         if (isSPressed) {
-            mesh.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(Number(mesh.frontVector.x)  * mesh.velocity, Number(mesh.frontVector.y) * mesh.velocity, Number(mesh.frontVector.z)  * mesh.velocity));
-
+            mesh.moveWithCollisions(mesh.frontVector.multiplyByFloats(mesh.velocity, mesh.velocity, mesh.velocity).add(GRAVITY_VECTOR));
+         
         }
     }
 }
@@ -272,24 +281,24 @@ function handleKeyboardMeshInputs(mesh) {
 function createHero()
 {
     tank = BABYLON.Mesh.CreateBox("tank", 1, scene, true);
+    tank.subdivide(4);
     tank.scaling.x *= 10;
     tank.scaling.z *= 20;
     tank.scaling.y *=1;
     tank.position.z += 10;
-    tank.position.y += 10;
+    tank.position.y += 2;
     tank.frontVector = new BABYLON.Vector3.Zero;
     tank.yRotation = 0; // There is a problem with tank.rotation.y when using physics engine. It needs quaternions and sets the rotation.y to zero
     // automatically.
-    tank.velocity = 50;
-    
-    
+    tank.velocity = 5;
+    tank.checkCollisions = true;
 
     followCamera.lockedTarget = tank;
 
     tank.material = materialAmiga;
 
-    followCamera.radius = 30; // how far from the object to follow
-    followCamera.heightOffset = 4; // how high above the object to place the followCamera
+    followCamera.radius = 40; // how far from the object to follow
+    followCamera.heightOffset = 2; // how high above the object to place the followCamera
     followCamera.rotationOffset = 0; // the viewing angle
     followCamera.cameraAcceleration = 0.1 // how fast to move
     followCamera.maxCameraSpeed = 200 // speed limit
@@ -312,7 +321,7 @@ function createHero()
    tankBoundingBox.parent = tank;
 
    // tank.checkCollisions = true;
-    tank.physicsImpostor = new BABYLON.PhysicsImpostor(tank, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 200,friction:.5, restitution: 0.0 }, scene);
+   // tank.physicsImpostor = new BABYLON.PhysicsImpostor(tank, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 200,friction:.5, restitution: 0.0 }, scene);
 
     var test = BABYLON.Mesh.CreateSphere("test1", 20,20, scene, true);
     test.physicsImpostor = new BABYLON.PhysicsImpostor(test, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 10, friction: 10, restitution: .2 }, scene);
@@ -320,7 +329,7 @@ function createHero()
     test.position.z -= 80;
     test.position.y += 10;
     test.position.x -= 100;
-    // test.checkCollisions = true;
+     test.checkCollisions = true;
     test.material = materialAmiga;
     materialAmiga.wireframe = true;
 
@@ -338,7 +347,7 @@ function calculateBoundingBoxOfCompositeMeshes(newMeshes) {
     for (var i = 0 ; i < newMeshes.length ; i++) {
 
         var positions = new BABYLON.VertexData.ExtractFromGeometry(newMeshes[i]).positions;
-
+        newMeshes[i].checkCollisions = true;
         if (!positions) continue;
         var index = 0;
 
@@ -366,7 +375,11 @@ function calculateBoundingBoxOfCompositeMeshes(newMeshes) {
 
     }
 
-    return { min: { x: minx, y: miny, z: minz }, max: { x: maxx, y: maxy, z: maxz } };
+    var _lengthX = (minx * maxx > 1) ? Math.abs(maxx - minx) : Math.abs(minx * -1 + maxx);
+    var _lengthY = (miny * maxy > 1) ? Math.abs(maxy - miny) : Math.abs(miny * -1 + maxy);
+    var _lengthZ = (minz * maxz > 1) ? Math.abs(maxz - minz) : Math.abs(minz * -1 + maxz);
+    var _center = new BABYLON.Vector3((minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0);
+    return { min: { x: minx, y: miny, z: minz }, max: { x: maxx, y: maxy, z: maxz }, lengthX: _lengthX, lengthY: _lengthY, lengthZ: _lengthZ , center: _center };
 
 }
 
@@ -379,17 +392,27 @@ function loadDudes(numDudes)
     BABYLON.SceneLoader.ImportMesh("him", "scenes/", "Dude.babylon", scene, function (newMeshes, particleSystems, skeletons) {
         dude = newMeshes[0];
         var boundingBox = calculateBoundingBoxOfCompositeMeshes(newMeshes);
+       
         dude.skeletons = [];
-
+      //  var newMesh = BABYLON.Mesh.MergeMeshes(newMeshes,false);
+        
         for (var i = 0; i < skeletons.length; i += 1) {
             dude.skeletons[i] = skeletons[i];
             scene.beginAnimation(dude.skeletons[i], 0, 120, 1.0, true);
         }
 
-        dude.position.z -= 200;
+        var angle =0;
+        var radius = 1000;
 
+        dude.frontVector = new BABYLON.Vector3(0, 0, -1);
+        dude.position.z = -1* radius;
+      //  dude.scaling.y *= .5;
+
+        clones[0] = dude;
+        dude.isVisible = false;
         for (var t = 1 ; t < numDudes ; t++) {
-            clone();
+            clone(dude, angle, radius);
+            angle += 2 * Math.PI / numDudes;
         }
                 addPhysicsToDude(dude, boundingBox);
 
@@ -397,57 +420,102 @@ function loadDudes(numDudes)
                 {
                     addPhysicsToDude(clones[k], boundingBox);
                 }
-
-            
-
     });
 
-    function clone() {
-        //create clone..
+function clone(dude,angle,radius) {
+ //create clone..
 
-        var id = clones.length;
-        var xrand = Math.floor(Math.random() * 1001) - 500;
-        var zrand = Math.floor(Math.random() * 1001) - 500;
-        console.log(xrand , zrand)
+ var id = clones.length;
 
-        clones[id] = dude.clone("clone_" + id);
-        clones[id].skeletons = [];
+ //console.log(xrand , zrand)
+ 
+ clones[id] = dude.clone("clone_" + id);
+ clones[id].skeletons = [];
+// console.log("dude skeleteons  :: " + dude.skeletons.length)
 
-        for (var i = 0; i < dude.skeletons.length; i += 1) {
-            clones[id].skeletons[i] = dude.skeletons[i].clone("skeleton clone #" + i);
-            scene.beginAnimation(clones[id].skeletons[i], 0, 120, 1.0, true);
-        }
+ for (var i = 0; i < dude.skeletons.length; i += 1) {
+     clones[id].skeletons[i] = dude.skeletons[i].clone(
+         "skeleton clone #" + i);
+     scene.beginAnimation(clones[id].skeletons[i],
+         0, 120, 1.0, true);
+ }
 
-        if (dude._children) {
-            //dude is a parent mesh with multiple _children.
+  if (dude._children) {
+      //dude is a parent mesh with multiple _children.
+  //    console.log("dude Children" +  dude._children);
+      for (var i = 0; i < dude._children.length; i += 1) {
+          if (clones[id].skeletons.length > 1) //Mostlikely a seperate skeleton for each child mesh..
+              clones[id]._children[i].skeleton =
+                  clones[id].skeletons[i];
+          else //Mostlikely a single skeleton for all child meshes.
+              clones[id]._children[i].skeleton =
+                  clones[id].skeletons[0];
+      }
 
-            for (var i = 0; i < dude._children.length; i += 1) {
-                if (clones[id].skeletons.length > 1) //Mostlikely a seperate skeleton for each child mesh..
-                    clones[id]._children[i].skeleton = clones[id].skeletons[i];
-                else //Mostlikely a single skeleton for all child meshes.
-                    clones[id]._children[i].skeleton = clones[id].skeletons[0];
-            }
-
-        } else {
-            //dude is a single mesh with no _children
-            clones[id].skeleton = clones[id].skeletons[0];
-        }
+  } else {
+      clones[id].skeleton = clones[id].skeletons[0];
+  }
 
 
-        clones[id].position = new BABYLON.Vector3(xrand, 2  , zrand);
+  clones[id].position =
+      new BABYLON.Vector3(Math.cos(angle) * radius,
+      2,
+      -1 * Math.sin(angle) * radius);
 
 
     }//Clone func
 
+    return clones;
 }
 
 function addPhysicsToDude(dude,boundingBox)
-{
-    dude.physicsImpostor = new BABYLON.PhysicsImpostor(dude, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 30000, friction: 10, restitution: 0 }, scene);
+{   
+   // dude.physicsImpostor = new BABYLON.PhysicsImpostor(dude, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 30000, friction: 10, restitution: 0 }, scene);
     dude.position.y = 2*dude.scaling.y;// = new BABYLON.Vector3(0, 2 * dude.scaling.y, dude.position.z);
     dude.skeletons[0].position = new BABYLON.Vector3(dude.position.x, 2 * dude.scaling.y, dude.position.z);
     dude.setBoundingInfo(new BABYLON.BoundingInfo(new BABYLON.Vector3(boundingBox.min.x, boundingBox.min.y, boundingBox.min.z),
    new BABYLON.Vector3(boundingBox.max.x, boundingBox.max.y, boundingBox.max.z)));
-    dude.physicsImpostor.forceUpdate();
+   
+    var bounder = new BABYLON.Mesh.CreateBox("bounder", 1, scene);
+    bounder.parent = dude;
+    bounder.position = boundingBox.center;
+    bounder.scaling.x = boundingBox.lengthX;
+    bounder.scaling.x *= .6;
+    bounder.scaling.y = boundingBox.lengthY;
+    bounder.scaling.z = boundingBox.lengthZ;
+    bounder.checkCollisions = true;
+    bounder.isVisible = false;
+
+ //   dude.physicsImpostor.forceUpdate();
     dude.showBoundingBox = true;
+    
+}
+
+
+function updateDudeOrientationsAndRotations(dude)
+{
+    var requiredMovementDirection = tank.position.subtract(dude.position);
+   
+
+    if (requiredMovementDirection.length() > 100)
+        //dude.moveWithCollisions(dude.frontVector.normalize().multiplyByFloats(3, 3, 3)); // too too slow.
+        dude.position.addInPlace(dude.frontVector.normalize().multiplyByFloats(1, 1, 1));
+    //else
+    //    scene.stopAnimation(dude.skeletons[0]);
+    requiredMovementDirection = requiredMovementDirection.normalize();
+    var cosAngle = BABYLON.Vector3.Dot(NEG_Z_VECTOR, requiredMovementDirection);
+    var clockwise = BABYLON.Vector3.Cross(NEG_Z_VECTOR, requiredMovementDirection).y > 0;
+    var LessThanPiAngle = Math.acos(cosAngle);
+        
+    dude.frontVector.y = 0;
+    dude.frontVector = requiredMovementDirection;
+
+
+    if (clockwise) {
+        dude.rotation.y = LessThanPiAngle;
+    }
+    else
+    {
+        dude.rotation.y = 2 * Math.PI - LessThanPiAngle;
+    }
 }
