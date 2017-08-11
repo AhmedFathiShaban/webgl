@@ -44,7 +44,8 @@ function startGame() {
     {
         scene.render();
         applyTankMovements();
-        dudes.forEach(function (dude) {
+        dudes.forEach(function (dude, index) {
+
             updateDudeOrientationsAndRotations(dude);
         });
 
@@ -156,6 +157,7 @@ function createHero()
     tank.frontVector = new BABYLON.Vector3(0, 0, -1);
     tank.checkCollisions = true;
     tank.applyGravity = true;
+  //  tank.onCollide = function(mesh){console.log("tank collided with " + mesh.name)}
     return tank;
 }
 
@@ -277,9 +279,7 @@ function updateDudeOrientationsAndRotations(dude) {
     var requiredMovementDirection = tank.position.subtract(dude.position);
 
     dude.frontVector = requiredMovementDirection;
-  // dude.frontVector.y = -.1;
-  //  console.log(dude.frontVector);
-
+    dude.frontVector.y = 0;
     if (requiredMovementDirection.length() > 15  )
         dude.bounder.moveWithCollisions(dude.frontVector.normalize().multiplyByFloats(.5, 1, .5));
     //else
