@@ -223,6 +223,19 @@ var alphaKeys = [];
 function applyTankMovements()
 {
 
+if(dudes[0])
+{
+	if (tank.intersectsMesh(dudes[0].bounder, false)) {
+	  tank.material.emissiveColor.r = 1 ;
+	  tank.material.diffuseColor.r = 1;
+	  tank.material.diffuseColor.b = 0;
+	} else {
+	  tank.material.emissiveColor.r = 0 ;
+	  tank.material.diffuseColor.r = 0;
+	  tank.material.diffuseColor.b= 1;
+}
+}
+
     if (isWPressed) {
         tank.moveWithCollisions(tank.frontVector.multiplyByFloats(tank.speed,tank.speed,tank.speed));
     }
