@@ -1,4 +1,4 @@
-﻿/// <reference path="js/babylon.max.js" />
+/// <reference path="js/babylon.max.js" />
 /// <reference path="js/cannon.max.js" />
 
 document.addEventListener("DOMContentLoaded", startGame, false);
@@ -31,14 +31,15 @@ function startGame() {
 
 
     var ground = createConfiguredGround();
-    loadDudes(16);
+    loadDudes(4);
 
     var light1 = new BABYLON.HemisphericLight("l1",
         new BABYLON.Vector3(0, 5, 0), scene);
     tank = createHero();
-    var followCamera = createFollowCamera();
-    scene.activeCamera = followCamera;
+    var followCamera = createFollowCamera(tank);
+    scene.activeCameras.push(followCamera);
    followCamera.attachControl(canvas);
+   followCamera.viewport = new BABYLON.Viewport(0,0,.5,1);
 
     engine.runRenderLoop(function ()
     {
@@ -162,10 +163,10 @@ function createHero()
 }
 
 
-function createFollowCamera() {
+function createFollowCamera(target) {
     var camera = new BABYLON.FollowCamera("follow",
         new BABYLON.Vector3(0, 2, -20), scene);
-   camera.lockedTarget = tank;
+   camera.lockedTarget = target;
     camera.radius = 10; // how far from the object to follow
     camera.heightOffset = 2; // how high above the object to place the camera
     camera.rotationOffset = 0; // the viewing angle
@@ -173,6 +174,50 @@ function createFollowCamera() {
     camera.maxCameraSpeed = 20 // speed limit
     return camera;
 }
+
+function createArcRotateCamera(target) {
+  var camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 1, 0.8, 20, target, scene);
+  var animationRotateAlpha= new BABYLON.Animation("myAnimation", "alpha", 20, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+
+  var animationRotateBeta = new BABYLON.Animation("myAnimation", "beta", 10, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+
+  var animationElongateRadius = new BABYLON.Animation("myAnimation", "radius", 40, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+
+var alphaKeys = []; 
+  alphaKeys.push({frame: 0,value: 0});
+  alphaKeys.push({frame: 50,value: Math.PI});
+  alphaKeys.push({frame: 100,value: 2*Math.PI});
+  animationRotateAlpha.setKeys(alphaKeys);
+
+  var betaKeys = []; 
+  betaKeys.push({frame: 0,value: Math.PI/4});
+  betaKeys.push({frame: 50,value: Math.PI/2});
+  betaKeys.push({frame: 100,value: Math.PI/4});
+  animationRotateBeta.setKeys(betaKeys);
+
+  var radiusKeys = []; 
+  radiusKeys.push({frame: 0,value: 20});
+  radiusKeys.push({frame: 50,value: 50});
+  radiusKeys.push({frame: 100,value: 20});
+  animationElongateRadius.setKeys(radiusKeys);
+
+  camera.animations = [];
+  camera.animations.push(animationRotateAlpha);
+  camera.animations.push(animationRotateBeta);
+  camera.animations.push(animationElongateRadius);
+
+
+
+
+
+
+
+  scene.beginAnimation(camera, 0, 100, true);
+  console.log("heeere");
+
+    return camera;
+}
+
 
 
 function applyTankMovements()
@@ -205,6 +250,11 @@ function loadDudes(NumDudes)
     function onDudeLoaded(newMeshes, particeSystems,skeletons)
     {
         dudes[0] = newMeshes[0];
+
+            var followCamera2 = createArcRotateCamera(dudes[0]);
+		    scene.activeCameras.push(followCamera2);
+		 // followCamera2.attachControl(canvas);
+		   followCamera2.viewport = new BABYLON.Viewport(.5,0,.5,1);
 
 
         var boundingBox = calculateBoundingBoxOfCompositeMeshes(newMeshes);
@@ -288,12 +338,14 @@ function updateDudeOrientationsAndRotations(dude) {
     var requiredMovementDirection = tank.position.subtract(dude.position);
 
     dude.frontVector = requiredMovementDirection;
+   // console.log(dude.position.y);
     if(dude.position.y > 1.1)
-        dude.frontVector.y = -1;
+    	dude.frontVector.y = -1;
     else if(dude.position.y < .6)
-        dude.frontVector.y = +1;
+    	dude.frontVector.y = +1;
     else
-        dude.frontVector.y = 0;  // if I make this negative weird rendereings 
+    	dude.frontVector.y = 0; 
+    // if I make this negative weird rendereings 
     // happen and dudes appear and disappear randomly. most probably because the box I am enclosing the dudes 
     // into is penetrating the ground in a weird way. I have to fix this, shifting the box, w laken lays al2an.
     if (requiredMovementDirection.length() > 15  )
@@ -363,9 +415,9 @@ function calculateBoundingBoxOfCompositeMeshes(newMeshes) {
     _boxMesh.scaling.z = _lengthZ / 10.0;
     _boxMesh.position.y += .5; // if I increase this, the dude gets higher in the skyyyyy
     _boxMesh.checkCollisions = true;
-    _boxMesh.material = new BABYLON.StandardMaterial("alpha", scene);
-    _boxMesh.material.alpha = .2;
-    _boxMesh.isVisible = true;
+  //  _boxMesh.material = new BABYLON.StandardMaterial("alpha", scene);
+  //  _boxMesh.material.alpha = .2;
+    _boxMesh.isVisible = false;
 
     return { min: { x: minx, y: miny, z: minz }, max: { x: maxx, y: maxy, z: maxz }, lengthX: _lengthX, lengthY: _lengthY, lengthZ: _lengthZ, center: _center, boxMesh: _boxMesh };
 
