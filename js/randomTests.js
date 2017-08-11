@@ -279,7 +279,9 @@ function updateDudeOrientationsAndRotations(dude) {
     var requiredMovementDirection = tank.position.subtract(dude.position);
 
     dude.frontVector = requiredMovementDirection;
-    dude.frontVector.y = 0;
+    dude.frontVector.y = 0; // if I make this negative weird rendereings 
+    // happen and dudes appear and disappear randomly. most probably because the box I am enclosing the dudes 
+    // into is penetrating the ground in a weird way. I have to fix this, shifting the box, w laken lays al2an.
     if (requiredMovementDirection.length() > 15  )
         dude.bounder.moveWithCollisions(dude.frontVector.normalize().multiplyByFloats(.5, 1, .5));
     //else
