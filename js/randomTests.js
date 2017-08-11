@@ -13,7 +13,7 @@ var isWPressed = false;
 var isSPressed = false;
 var isDPressed = false;
 var isAPressed = false;
-const NEG_Z_VECTOR = new BABYLON.Vector3(0, 0, -1);
+const NEG_Z_VECTOR = new BABYLON.Vector3(0, -1, -1);
 function startGame() {
     canvas = document.getElementById("renderCanvas");
     engine = new BABYLON.Engine(canvas, true);
@@ -25,13 +25,13 @@ function startGame() {
 
     engine.isPointerLock = true;
 
-//    var freeCamera = createFreeCamera();
+   var freeCamera = createFreeCamera();
  //   freeCamera.attachControl(canvas);
 
 
 
     var ground = createConfiguredGround();
-    loadDudes(10);
+    loadDudes(16);
 
     var light1 = new BABYLON.HemisphericLight("l1",
         new BABYLON.Vector3(0, 5, 0), scene);
@@ -62,6 +62,14 @@ function startGame() {
         }
         if (event.key == 'w' || event.key == 'W') {
             isWPressed = false;
+        }
+        if (event.key == 'c' || event.key == 'C') {
+            scene.activeCamera = freeCamera;
+            freeCamera.attachControl(canvas);
+        }
+        if (event.key == 'f' || event.key == 'F') {
+            scene.activeCamera = followCamera;
+            followCamera.attachControl(canvas);
         }
 
 
@@ -135,15 +143,15 @@ function createHero()
     tank.material = tankMaterial;
 
     tank.position.y += 1;
-    tank.ellipsoid = new BABYLON.Vector3(0.5, 1.0, 0.5);
-    tank.ellipsoidOffset = new BABYLON.Vector3(0, 2.0, 0);
+    tank.ellipsoid = new BABYLON.Vector3(1, 2.0, 1);
+    tank.ellipsoidOffset = new BABYLON.Vector3(0, 3.0, 0);
     tank.scaling.y *= .5;
     tank.scaling.x = .5;
     tank.scaling.z = 1;
     
    // tank.material.wireframe = true;
 
-    tank.rotationSensitivity = .1;
+    tank.rotationSensitivity = .3;
     tank.speed = 1;
     tank.frontVector = new BABYLON.Vector3(0, 0, -1);
     tank.checkCollisions = true;
@@ -169,10 +177,10 @@ function applyTankMovements()
 {
 
     if (isWPressed) {
-        tank.moveWithCollisions(tank.frontVector);
+        tank.moveWithCollisions(tank.frontVector.multiplyByFloats(tank.speed,tank.speed,tank.speed));
     }
     if (isSPressed) {
-        var reverseVector = tank.frontVector.multiplyByFloats(-1,1,-1);
+        var reverseVector = tank.frontVector.multiplyByFloats(-1,1,-1).multiplyByFloats(tank.speed,tank.speed,tank.speed);
         tank.moveWithCollisions(reverseVector);
         
     }
@@ -194,15 +202,22 @@ function loadDudes(NumDudes)
     BABYLON.SceneLoader.ImportMesh("him", "scenes/", "Dude.babylon", scene, onDudeLoaded);
     function onDudeLoaded(newMeshes, particeSystems,skeletons)
     {
-         dudes[0] = newMeshes[0];
+        dudes[0] = newMeshes[0];
 
-         dudes[0].scaling = new BABYLON.Vector3(0.05, 0.05, 0.05);
-         dudes[0].position.y = 3.392;
-         dudes[0].checkCollisions = true;
-         dudes[0].ellipsoid = new BABYLON.Vector3(1, 1, 1);
-         dudes[0].ellipsoidOffset = new BABYLON.Vector3(0, 2, 0);
 
-         dudes[0].applyGravity = true;
+        var boundingBox = calculateBoundingBoxOfCompositeMeshes(newMeshes);
+        dudes[0].bounder = boundingBox.boxMesh;
+        dudes[0].bounder.ellipsoidOffset.y += 3 ;
+        
+        dudes[0].position = dudes[0].bounder.position;
+       
+
+
+          dudes[0].scaling = new BABYLON.Vector3(0.05, 0.05, 0.05);
+        drawEllipsoid(tank);
+         
+
+
        //  dudes[0].onCollide = function () { console.log('I am colliding with something') }
         
         dudes[0].skeletons = [];
@@ -221,9 +236,12 @@ function loadDudes(NumDudes)
         for (var j = 1 ; j < NumDudes ; j++) {
             var id = dudes.length;
             dudes[id] = cloneModel(dudes[0], "name#" + id);
-            angle += 2 * Math.PI / NumDudes;
-            dudes[id].position = new BABYLON.Vector3(Math.sin(angle) * radius, 3, -1 * Math.cos(angle) * radius);
-
+             angle += 2 * Math.PI / NumDudes;
+            //radius += 5;
+            dudes[id].position = new BABYLON.Vector3(Math.sin(angle) * radius, dudes[0].position.y, -1 * Math.cos(angle) * radius);
+            dudes[id].bounder.position = dudes[id].position;
+           // dudes[id].bounder.position.y += 40;
+         //   console.log(dudes[id].bounder)
         }
     }
 
@@ -234,6 +252,7 @@ function loadDudes(NumDudes)
 function cloneModel(model,name) {
     var tempClone;
     tempClone = model.clone("clone_" + name);
+    tempClone.bounder = model.bounder.clone("bounder_custom" + name);
     tempClone.skeletons = [];
     for (var i = 0; i < model.skeletons.length; i += 1) {
         tempClone.skeletons[i] = model.skeletons[i].clone("skeleton clone #" + name +  i);
@@ -257,9 +276,12 @@ function cloneModel(model,name) {
 function updateDudeOrientationsAndRotations(dude) {
     var requiredMovementDirection = tank.position.subtract(dude.position);
 
+    dude.frontVector = requiredMovementDirection;
+  // dude.frontVector.y = -.1;
+  //  console.log(dude.frontVector);
 
-    if (requiredMovementDirection.length() > 1)
-        dude.moveWithCollisions(dude.frontVector.normalize().multiplyByFloats(.1, 1, .1)); // too too slow.
+    if (requiredMovementDirection.length() > 15  )
+        dude.bounder.moveWithCollisions(dude.frontVector.normalize().multiplyByFloats(.5, 1, .5));
     //else
     //    scene.stopAnimation(dude.skeletons[0]);
     requiredMovementDirection = requiredMovementDirection.normalize();
@@ -268,8 +290,7 @@ function updateDudeOrientationsAndRotations(dude) {
     var LessThanPiAngle = Math.acos(cosAngle);
 
 
-    dude.frontVector = requiredMovementDirection;
-    dude.frontVector.y = -1;
+
 
     if (clockwise) {
         dude.rotation.y = LessThanPiAngle;
@@ -277,4 +298,78 @@ function updateDudeOrientationsAndRotations(dude) {
     else {
         dude.rotation.y = 2 * Math.PI - LessThanPiAngle;
     }
+
+
+
+}
+function calculateBoundingBoxOfCompositeMeshes(newMeshes) {
+    var minx = 10000; var miny = 10000; var minz = 10000; var maxx = -10000; var maxy = -10000; var maxz = -10000;
+
+    for (var i = 0 ; i < newMeshes.length ; i++) {
+
+        var positions = new BABYLON.VertexData.ExtractFromGeometry(newMeshes[i]).positions;
+       // newMeshes[i].checkCollisions = true;
+        if (!positions) continue;
+        var index = 0;
+
+        for (var j = index ; j < positions.length ; j += 3) {
+            if (positions[j] < minx)
+                minx = positions[j];
+            if (positions[j] > maxx)
+                maxx = positions[j];
+        }
+        index = 1;
+
+        for (var j = index ; j < positions.length ; j += 3) {
+            if (positions[j] < miny)
+                miny = positions[j];
+            if (positions[j] > maxy)
+                maxy = positions[j];
+        }
+        index = 2;
+        for (var j = index ; j < positions.length ; j += 3) {
+            if (positions[j] < minz)
+                minz = positions[j];
+            if (positions[j] > maxz)
+                maxz = positions[j];
+        }
+
+    }
+
+    var _lengthX = (minx * maxx > 1) ? Math.abs(maxx - minx) : Math.abs(minx * -1 + maxx);
+    var _lengthY = (miny * maxy > 1) ? Math.abs(maxy - miny) : Math.abs(miny * -1 + maxy);
+    var _lengthZ = (minz * maxz > 1) ? Math.abs(maxz - minz) : Math.abs(minz * -1 + maxz);
+    var _center = new BABYLON.Vector3((minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0);
+
+    var _boxMesh = BABYLON.Mesh.CreateBox("box", 1, scene);
+    _boxMesh.scaling.x = _lengthX/35.0;
+    _boxMesh.scaling.y = _lengthY /5.0;
+    _boxMesh.scaling.z = _lengthZ / 30.0;
+    _boxMesh.position.y += 2;
+    _boxMesh.checkCollisions = true;
+    //_boxMesh.material = new BABYLON.StandardMaterial("alpha", scene);
+    //_boxMesh.material.alpha = .2;
+    _boxMesh.isVisible = false;
+
+    return { min: { x: minx, y: miny, z: minz }, max: { x: maxx, y: maxy, z: maxz }, lengthX: _lengthX, lengthY: _lengthY, lengthZ: _lengthZ, center: _center, boxMesh: _boxMesh };
+
+}
+
+function drawEllipsoid(mesh) {
+    mesh.computeWorldMatrix(true);
+    var ellipsoidMat = mesh.getScene().getMaterialByName("__ellipsoidMat__");
+    if (!ellipsoidMat) {
+        ellipsoidMat = new BABYLON.StandardMaterial("__ellipsoidMat__", mesh.getScene());
+        ellipsoidMat.wireframe = true;
+        ellipsoidMat.emissiveColor = BABYLON.Color3.Green();
+        ellipsoidMat.specularColor = BABYLON.Color3.Black();
+    }
+    var ellipsoid = BABYLON.Mesh.CreateSphere("__ellipsoid__", 9, 1, mesh.getScene());
+    ellipsoid.scaling = mesh.ellipsoid.clone();
+    ellipsoid.scaling.y *= 2;
+    ellipsoid.scaling.x *= 2;
+    ellipsoid.scaling.z *= 2;
+    ellipsoid.material = ellipsoidMat;
+    ellipsoid.parent = mesh;
+    ellipsoid.computeWorldMatrix(true);
 }
