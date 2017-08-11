@@ -356,7 +356,7 @@ function calculateBoundingBoxOfCompositeMeshes(newMeshes) {
     _boxMesh.scaling.x = _lengthX/30.0;
     _boxMesh.scaling.y = _lengthY /5.0;
     _boxMesh.scaling.z = _lengthZ / 25.0;
-    _boxMesh.position.y += .5;
+    _boxMesh.position.y += .5; // if I increase this, the dude gets higher in the skyyyyy
     _boxMesh.checkCollisions = true;
     _boxMesh.material = new BABYLON.StandardMaterial("alpha", scene);
     _boxMesh.material.alpha = .2;
