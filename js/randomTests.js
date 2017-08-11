@@ -209,14 +209,23 @@ function loadDudes(NumDudes)
 
         var boundingBox = calculateBoundingBoxOfCompositeMeshes(newMeshes);
         dudes[0].bounder = boundingBox.boxMesh;
-        dudes[0].bounder.ellipsoidOffset.y += 3 ;
+        dudes[0].bounder.ellipsoidOffset.y += 3 ; // if I make this += 10 , no collision happens (better performance), but they merge
+        // if I make it +=2 , they are visually good, but very bad performance (actually bad performance when I console.log in the onCollide)
+        // if I make it += 1 , very very bad performance as it is constantly in collision with the ground
         
         dudes[0].position = dudes[0].bounder.position;
        
-
+        dudes[0].bounder.onCollide = function(mesh){
+          //  console.log(mesh.name);
+            if(mesh.name =="ground")
+            {
+                console.log("koko");
+            }
+    }
 
           dudes[0].scaling = new BABYLON.Vector3(0.05, 0.05, 0.05);
         drawEllipsoid(tank);
+        //drawEllipsoid(dudes[0].bounder);
          
 
 
@@ -344,14 +353,14 @@ function calculateBoundingBoxOfCompositeMeshes(newMeshes) {
     var _center = new BABYLON.Vector3((minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0);
 
     var _boxMesh = BABYLON.Mesh.CreateBox("box", 1, scene);
-    _boxMesh.scaling.x = _lengthX/35.0;
+    _boxMesh.scaling.x = _lengthX/30.0;
     _boxMesh.scaling.y = _lengthY /5.0;
-    _boxMesh.scaling.z = _lengthZ / 30.0;
-    _boxMesh.position.y += 2;
+    _boxMesh.scaling.z = _lengthZ / 25.0;
+    _boxMesh.position.y += .5;
     _boxMesh.checkCollisions = true;
-    //_boxMesh.material = new BABYLON.StandardMaterial("alpha", scene);
-    //_boxMesh.material.alpha = .2;
-    _boxMesh.isVisible = false;
+    _boxMesh.material = new BABYLON.StandardMaterial("alpha", scene);
+    _boxMesh.material.alpha = .2;
+    _boxMesh.isVisible = true;
 
     return { min: { x: minx, y: miny, z: minz }, max: { x: maxx, y: maxy, z: maxz }, lengthX: _lengthX, lengthY: _lengthY, lengthZ: _lengthZ, center: _center, boxMesh: _boxMesh };
 
