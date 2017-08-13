@@ -22,11 +22,41 @@
     </AppXManifest>
   </ItemGroup>
   <ItemGroup>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\babylonjs.mp4">
+      <PackagePath>babylonjs.mp4</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\game.html">
+      <PackagePath>game.html</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\randomTests.html">
+      <PackagePath>randomTests.html</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\randomTestsHome.html">
+      <PackagePath>randomTestsHome.html</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\webgl1.html">
+      <PackagePath>webgl1.html</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\webgl2.html">
+      <PackagePath>webgl2.html</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\webgl3.html">
+      <PackagePath>webgl3.html</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\webgl4.html">
+      <PackagePath>webgl4.html</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\webgl5Textures.html">
+      <PackagePath>webgl5Textures.html</PackagePath>
+    </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\images\checker_large.gif">
       <PackagePath>images\checker_large.gif</PackagePath>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\images\height1.png">
       <PackagePath>images\height1.png</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\textures\Tree.png">
+      <PackagePath>textures\Tree.png</PackagePath>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\images\LockScreenLogo.scale-200.png">
       <PackagePath>images\LockScreenLogo.scale-200.png</PackagePath>
@@ -55,20 +85,89 @@
       <PackagePath>images\Wide310x150Logo.scale-200.png</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\index.html">
-      <PackagePath>index.html</PackagePath>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\images\lightning.jpg">
+      <PackagePath>images\lightning.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\images\webgl-logo-256.jpg">
+      <PackagePath>images\webgl-logo-256.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\scenes\0.jpg">
+      <PackagePath>scenes\0.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\scenes\1.jpg">
+      <PackagePath>scenes\1.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\scenes\2.jpg">
+      <PackagePath>scenes\2.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\scenes\3.jpg">
+      <PackagePath>scenes\3.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\textures\normalMap.jpg">
+      <PackagePath>textures\normalMap.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\textures\Refcube_nx.jpg">
+      <PackagePath>textures\Refcube_nx.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\textures\Refcube_ny.jpg">
+      <PackagePath>textures\Refcube_ny.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\textures\Refcube_nz.jpg">
+      <PackagePath>textures\Refcube_nz.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\textures\Refcube_px.jpg">
+      <PackagePath>textures\Refcube_px.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\textures\Refcube_py.jpg">
+      <PackagePath>textures\Refcube_py.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\textures\Refcube_pz.jpg">
+      <PackagePath>textures\Refcube_pz.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\textures\wood.jpg">
+      <PackagePath>textures\wood.jpg</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\coding4fun.js">
+      <PackagePath>js\coding4fun.js</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\qrcode.js">
+      <PackagePath>js\qrcode.js</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\randomTests.js">
+      <PackagePath>js\randomTests.js</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\randomTestsHome.js">
+      <PackagePath>js\randomTestsHome.js</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\webgl3.js">
+      <PackagePath>js\webgl3.js</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\webgl4.js">
+      <PackagePath>js\webgl4.js</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\webgl5Textures.js">
+      <PackagePath>js\webgl5Textures.js</PackagePath>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\babylon.max.js">
       <PackagePath>js\babylon.max.js</PackagePath>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\main.js">
-      <PackagePath>js\main.js</PackagePath>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\glMatrix-0.9.5.min.js">
+      <PackagePath>js\glMatrix-0.9.5.min.js</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\game.js">
+      <PackagePath>js\game.js</PackagePath>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\cannon.max.js">
       <PackagePath>js\cannon.max.js</PackagePath>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\three.js">
-      <PackagePath>js\three.js</PackagePath>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\webgl1.js">
+      <PackagePath>js\webgl1.js</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\js\webgl2.js">
+      <PackagePath>js\webgl2.js</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\scenes\Dude.babylon">
+      <PackagePath>scenes\Dude.babylon</PackagePath>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\AhmedFathi\documents\visual studio 2015\Projects\JSApp1\JSApp1\css\default.css">
       <PackagePath>css\default.css</PackagePath>

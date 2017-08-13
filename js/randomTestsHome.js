@@ -21,20 +21,19 @@ function startGame() {
     //  scene.collisionsEnabled = true;
     scene.gravity = new BABYLON.Vector3(0, -10, 0);
    
-   
-
+  
     engine.isPointerLock = true;
 
    var freeCamera = createFreeCamera();
  //   freeCamera.attachControl(canvas);
 
-
+   scene.enablePhysics(new BABYLON.Vector3(0, -10, 0), new BABYLON.CannonJSPlugin());
+   scene.gravity = new BABYLON.Vector3(0, -10, 0);
 
     var ground = createConfiguredGround();
-    loadDudes(4);
+    loadDudes(80);
 
-    var light1 = new BABYLON.HemisphericLight("l1",
-        new BABYLON.Vector3(0, 5, 0), scene);
+    var light1 = new BABYLON.HemisphericLight("l1",new BABYLON.Vector3(0, 5, 0), scene);
     tank = createHero();
     var followCamera = createFollowCamera(tank);
     scene.activeCameras.push(followCamera);
@@ -90,6 +89,32 @@ function startGame() {
         }
         if (event.key == 'w' || event.key == 'W') {
             isWPressed = true;
+        }
+        if (event.key == 'b' || event.key == 'B') {
+            var CannonBall = BABYLON.Mesh.CreateSphere("s", 30, 1, scene, false);
+            CannonBall.position = tank.position.add(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(15, 0, 15)));
+            CannonBall.physicsImpostor = new BABYLON.PhysicsImpostor(CannonBall, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 5, friction: 10, restitution: .2 }, scene);
+            CannonBall.physicsImpostor.setLinearVelocity(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(1000, 0, 1000)));
+
+            console.log('before update :');
+            console.log(CannonBall._boundingInfo);
+            CannonBall.refreshBoundingInfo();
+            console.log("after update ");
+            console.log(CannonBall._boundingInfo);
+            if(dudes[0])
+            CannonBall.intersectsMesh(dudes[0].bounder, true)
+            {
+                
+                console.log("sssss");
+                dudes[0].bounder.dispose();
+                dudes[0].dispose();
+                dudes[0] = null;
+                dudes.splice(0, 1);
+            }
+            setTimeout(function () {
+                CannonBall.dispose();
+            }, 3000);
+
         }
 
     });
@@ -213,7 +238,7 @@ var alphaKeys = [];
 
 
   scene.beginAnimation(camera, 0, 100, true);
-  console.log("heeere");
+ // console.log("heeere");
 
     return camera;
 }
@@ -361,7 +386,7 @@ function updateDudeOrientationsAndRotations(dude) {
     // if I make this negative weird rendereings 
     // happen and dudes appear and disappear randomly. most probably because the box I am enclosing the dudes 
     // into is penetrating the ground in a weird way. I have to fix this, shifting the box, w laken lays al2an.
-    if (requiredMovementDirection.length() > 15  )
+    if (requiredMovementDirection.length() > 40  )
         dude.bounder.moveWithCollisions(dude.frontVector.normalize().multiplyByFloats(.5, 1, .5));
     //else
     //    scene.stopAnimation(dude.skeletons[0]);
@@ -428,9 +453,9 @@ function calculateBoundingBoxOfCompositeMeshes(newMeshes) {
     _boxMesh.scaling.z = _lengthZ / 10.0;
     _boxMesh.position.y += .5; // if I increase this, the dude gets higher in the skyyyyy
     _boxMesh.checkCollisions = true;
-  //  _boxMesh.material = new BABYLON.StandardMaterial("alpha", scene);
-  //  _boxMesh.material.alpha = .2;
-    _boxMesh.isVisible = false;
+    _boxMesh.material = new BABYLON.StandardMaterial("alpha", scene);
+    _boxMesh.material.alpha = .2;
+    _boxMesh.isVisible = true;
 
     return { min: { x: minx, y: miny, z: minz }, max: { x: maxx, y: maxy, z: maxz }, lengthX: _lengthX, lengthY: _lengthY, lengthZ: _lengthZ, center: _center, boxMesh: _boxMesh };
 
