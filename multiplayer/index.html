@@ -1,0 +1,83 @@
+﻿<!doctype html>
+<html>
+	<head>
+		<title>Eureca.io tchat</title>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+		<script src="/eureca.js"></script>
+		
+		<style>
+			#msgbox {
+				border:3px solid #555;
+				height:300px;
+				width:500px;
+				overflow:auto;				
+				list-style:none;
+				padding:5px;				
+			}
+			#msgbox li {
+				list-style:none;
+				padding:0px;
+				color:#55e;
+				font:700 12px arial;
+			}
+			#msgbox li b {
+				font:700 14px arial;
+				color:#b33;
+			}
+		</style>
+	</head>
+	<body>    
+		<div id="auth">
+			Pseudo : <input type="text" id="nick" /><button id="logBtn">Log In</button>
+		</div>
+		
+		<div id="main" style="display:none">
+			<ul id="msgbox"></ul>
+			<input type="text" id="msg" /><button id="sendBtn">Send</button>
+		</div>
+		
+		<script>
+			var client = new Eureca.Client();
+			var server;
+			client.ready(function (proxy) {
+				server = proxy;
+			});
+			
+			var tchat = client.exports.tchat = {};
+			//the server use this method to send other client messages to the current client
+			tchat.send = function(nick, message)
+			{
+				var tchatline = $('<li><b>'+nick+' </b><span>'+message+'</span></li>');
+				$('#msgbox').append(tchatline);
+			}
+			
+			//called when the server authenticate this client
+			tchat.welcome = function()
+			{
+				$('#auth').fadeOut('fast', function() {
+					$('#main').fadeIn('fast');
+				});
+			}
+			
+			//DOM stuff
+			//initialise with a default nick
+			$('#nick').val('anonymous-'+new Date().getTime());
+			
+			//simulate authentication
+			$('#logBtn').click(function() {
+				if (!server) return; //client not ready
+				
+				var nick = $('#nick').val();
+				server.tchatServer.login(nick);
+			});
+			
+			//send tchat message
+			$('#sendBtn').click(function() {
+				if (!server) return; //client not ready
+				
+				server.tchatServer.send($('#msg').val());
+			});					
+		</script>
+	</body>
+</html>
+

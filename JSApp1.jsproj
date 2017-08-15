@@ -71,6 +71,8 @@
     <Content Include="js\webgl3.js" />
     <Content Include="js\webgl4.js" />
     <Content Include="js\webgl5Textures.js" />
+    <Content Include="multiplayer\index.html" />
+    <Content Include="multiplayer\server.js" />
     <Content Include="randomTests.html" />
     <Content Include="randomTestsHome.html" />
     <Content Include="scenes\0.jpg" />

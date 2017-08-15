@@ -18,38 +18,126 @@ function startGame() {
     canvas = document.getElementById("renderCanvas");
     engine = new BABYLON.Engine(canvas, true);
     scene = new BABYLON.Scene(engine);
+
+
     //  scene.collisionsEnabled = true;
     scene.gravity = new BABYLON.Vector3(0, -10, 0);
-   
   
     engine.isPointerLock = true;
 
-   var freeCamera = createFreeCamera();
- //   freeCamera.attachControl(canvas);
+    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000.0, scene);
+    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+    skyboxMaterial.backFaceCulling = false;
+    skyboxMaterial.disableLighting = true;
+    skybox.material = skyboxMaterial;
+    skybox.infiniteDistance = true;
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("textures/sky/sky", scene);
+    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
 
+
+   var freeCamera = createFreeCamera();
+    freeCamera.attachControl(canvas);
+
+     var impact = BABYLON.Mesh.CreateBox("box", .5, scene);
+    impact.position.z = 10;
+    impact.parent = freeCamera;
+    impact.isPickable = false;
+    impact.material = new BABYLON.StandardMaterial("target", scene);
+    impact.material.diffuseTexture = new BABYLON.Texture("textures/gunaims.png", scene);
+    impact.material.diffuseTexture.hasAlpha = true;
    scene.enablePhysics(new BABYLON.Vector3(0, -10, 0), new BABYLON.CannonJSPlugin());
    scene.gravity = new BABYLON.Vector3(0, -10, 0);
-
+     //scene.getPhysicsEngine().setTimeStep(1 / 200)
     var ground = createConfiguredGround();
-    loadDudes(80);
+    loadDudes(20);
 
     var light1 = new BABYLON.HemisphericLight("l1",new BABYLON.Vector3(0, 5, 0), scene);
     tank = createHero();
     var followCamera = createFollowCamera(tank);
-    scene.activeCameras.push(followCamera);
-   followCamera.attachControl(canvas);
-   followCamera.viewport = new BABYLON.Viewport(0,0,.5,1);
-
+  //  scene.activeCameras.push(followCamera);
+ //  followCamera.attachControl(canvas);
+  // followCamera.viewport = new BABYLON.Viewport(0,0,.5,1);
+   
     engine.runRenderLoop(function ()
     {
-        scene.render();
+        
         applyTankMovements();
         dudes.forEach(function (dude, index) {
 
             updateDudeOrientationsAndRotations(dude);
         });
 
+        scene.render();
     });
+
+    //scene.onPointerDown = function (evt, pr) {
+
+    //    var pickInfo = scene.pick(scene.pointerX, scene.pointerY);
+    //    if (pickInfo.hit) {
+    //        console.log(pickInfo.pickedMesh.name);
+    //        var ray = new BABYLON.Ray(followCamera.position, pickInfo.pickedMesh.position , 1000);
+    //        var rayHelper = new BABYLON.RayHelper(ray);
+    //        rayHelper.show(scene);
+
+    //        if(pickInfo.pickedMesh.name == "bounder")
+    //        {
+    //            pickInfo.pickedMesh.dude.dispose();
+    //            pickInfo.pickedMesh.dispose();
+    //        }
+    //    }
+    //};
+
+    var isLocked = false;
+    scene.onPointerDown = function (evt, pr) {
+
+        if (!isLocked) {
+            canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
+            if (canvas.requestPointerLock) {
+                canvas.requestPointerLock();
+            }
+        }
+
+        var width =this.getEngine().getRenderWidth();
+        var height = this.getEngine().getRenderHeight();
+        var pickInfo =this.pick(width / 2, height / 2);
+            
+      
+            if (pickInfo.hit)
+            {
+                console.log(pickInfo.pickedMesh.name);
+                var ray = new BABYLON.Ray(freeCamera.position, pickInfo.pickedMesh.position, 1000);
+                var rayHelper = new BABYLON.RayHelper(ray);
+                rayHelper.show(scene)
+
+                if (pickInfo.pickedMesh.name == "bounder") {
+                    pickInfo.pickedMesh.dude.dispose();
+                    pickInfo.pickedMesh.dispose();
+                }
+            }
+
+        
+    };
+    // Event listener when the pointerlock is updated (or removed by pressing ESC for example).
+    var pointerlockchange = function () {
+        var controlEnabled = document.mozPointerLockElement || document.webkitPointerLockElement || document.msPointerLockElement || document.pointerLockElement || null;
+
+        // If the user is already locked
+        if (!controlEnabled) {
+            //camera.detachControl(canvas);
+            isLocked = false;
+        } else {
+            //camera.attachControl(canvas);
+            isLocked = true;
+        }
+    };
+
+    // Attach events to the document
+    document.addEventListener("pointerlockchange", pointerlockchange, false);
+    document.addEventListener("mspointerlockchange", pointerlockchange, false);
+    document.addEventListener("mozpointerlockchange", pointerlockchange, false);
+    document.addEventListener("webkitpointerlockchange", pointerlockchange, false);
+
+
 
     document.addEventListener("keyup", function () {
         if (event.key == 'a' || event.key == 'A') {
@@ -92,28 +180,55 @@ function startGame() {
         }
         if (event.key == 'b' || event.key == 'B') {
             var CannonBall = BABYLON.Mesh.CreateSphere("s", 30, 1, scene, false);
-            CannonBall.position = tank.position.add(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(15, 0, 15)));
-            CannonBall.physicsImpostor = new BABYLON.PhysicsImpostor(CannonBall, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 5, friction: 10, restitution: .2 }, scene);
-            CannonBall.physicsImpostor.setLinearVelocity(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(1000, 0, 1000)));
+            CannonBall.position = tank.position.add(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(20, 0, 20)));
+            CannonBall.physicsImpostor = new BABYLON.PhysicsImpostor(CannonBall, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 0.1, friction: 0, restitution: .2 }, scene);
+            CannonBall.physicsImpostor.setLinearVelocity(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(700, 0, 700)));
 
-            console.log('before update :');
-            console.log(CannonBall._boundingInfo);
-            CannonBall.refreshBoundingInfo();
-            console.log("after update ");
-            console.log(CannonBall._boundingInfo);
-            if(dudes[0])
-            CannonBall.intersectsMesh(dudes[0].bounder, true)
+            CannonBall.actionManager = new BABYLON.ActionManager(scene);
+            dudes.forEach(function (dude)
             {
-                
-                console.log("sssss");
-                dudes[0].bounder.dispose();
-                dudes[0].dispose();
-                dudes[0] = null;
-                dudes.splice(0, 1);
-            }
+                CannonBall.actionManager.registerAction(new BABYLON.ExecuteCodeAction({ trigger: BABYLON.ActionManager.OnIntersectionEnterTrigger, parameter: { mesh: dude.bounder } }, function () {
+                    
+                    dude.bounder.dispose();
+                    dude.dispose();
+                   
+                }));
+
+            });
+
+
             setTimeout(function () {
                 CannonBall.dispose();
             }, 3000);
+
+        }
+
+        if (event.key == 'r' || event.key == 'R') {
+            var origin = tank.position;
+            var direction = new BABYLON.Vector3(tank.frontVector.x, 0, tank.frontVector.z);
+            direction = BABYLON.Vector3.Normalize(direction);
+
+            var length = 1000;
+
+            var ray = new BABYLON.Ray(origin, direction, length);
+ 
+            var rayHelper = new BABYLON.RayHelper(ray);
+            rayHelper.show(scene);
+            setTimeout(function () {
+                rayHelper.hide();
+            }, 500);
+
+            var hit = scene.pickWithRay(ray);
+
+            if (hit.pickedMesh) {
+                
+                if(hit.pickedMesh.name === "bounder")
+                {
+                    hit.pickedMesh.dude.dispose();
+                    hit.pickedMesh.dispose();
+                    
+                }
+            }
 
         }
 
@@ -142,7 +257,7 @@ function createConfiguredGround()
 
     var ground = new BABYLON.Mesh.CreateGroundFromHeightMap
         ("ground", "images/height1.png", 1000, 1000,
-        50, 0, 100, scene, false, onGroundCreated);
+        50, 0, 10, scene, false, onGroundCreated);
 
     var groundMaterial = new BABYLON.StandardMaterial("m1", scene);
     groundMaterial.ambientColor = new BABYLON.Color3(1, 0, 0);
@@ -154,6 +269,8 @@ function createConfiguredGround()
     function onGroundCreated() {
         ground.material = groundMaterial;
         ground.checkCollisions = true;
+        ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.HeightmapImpostor, { mass: 0, friction: 10, restitution: .2 }, scene);
+        ground.isPickable = true;
     }
 
     return ground;
@@ -168,6 +285,7 @@ function createHero()
         scene);
     tankMaterial.diffuseColor = new BABYLON.Color3.Blue;
     tank.material = tankMaterial;
+    tank.isPickable = false;
 
     tank.position.y += 1;
     tank.ellipsoid = new BABYLON.Vector3(1, 2.0, 1);
@@ -232,12 +350,7 @@ var alphaKeys = [];
   camera.animations.push(animationElongateRadius);
 
 
-
-
-
-
-
-  scene.beginAnimation(camera, 0, 100, true);
+//  scene.beginAnimation(camera, 0, 100, true);
  // console.log("heeere");
 
     return camera;
@@ -247,19 +360,6 @@ var alphaKeys = [];
 
 function applyTankMovements()
 {
-
-if(dudes[0])
-{
-	if (tank.intersectsMesh(dudes[0].bounder, false)) {
-	  tank.material.emissiveColor.r = 1 ;
-	  tank.material.diffuseColor.r = 1;
-	  tank.material.diffuseColor.b = 0;
-	} else {
-	  tank.material.emissiveColor.r = 0 ;
-	  tank.material.diffuseColor.r = 0;
-	  tank.material.diffuseColor.b= 1;
-}
-}
 
     if (isWPressed) {
         tank.moveWithCollisions(tank.frontVector.multiplyByFloats(tank.speed,tank.speed,tank.speed));
@@ -289,20 +389,21 @@ function loadDudes(NumDudes)
     {
         dudes[0] = newMeshes[0];
 
-            var followCamera2 = createArcRotateCamera(dudes[0]);
-		    scene.activeCameras.push(followCamera2);
-		 // followCamera2.attachControl(canvas);
-		   followCamera2.viewport = new BABYLON.Viewport(.5,0,.5,1);
+         //   var followCamera2 = createArcRotateCamera(dudes[0]);
+		 //   scene.activeCameras.push(followCamera2);
+		 //// followCamera2.attachControl(canvas);
+		 //  followCamera2.viewport = new BABYLON.Viewport(.5,0,.5,1);
 
 
         var boundingBox = calculateBoundingBoxOfCompositeMeshes(newMeshes);
         dudes[0].bounder = boundingBox.boxMesh;
+        dudes[0].bounder.dude = dudes[0];
         dudes[0].bounder.ellipsoidOffset.y += 3 ; // if I make this += 10 , no collision happens (better performance), but they merge
         // if I make it +=2 , they are visually good, but very bad performance (actually bad performance when I console.log in the onCollide)
         // if I make it += 1 , very very bad performance as it is constantly in collision with the ground
         
         dudes[0].position = dudes[0].bounder.position;
-       
+
         dudes[0].bounder.onCollide = function(mesh){
           //  console.log(mesh.name);
             if(mesh.name =="ground")
@@ -312,7 +413,7 @@ function loadDudes(NumDudes)
     }
 
           dudes[0].scaling = new BABYLON.Vector3(0.05, 0.05, 0.05);
-        drawEllipsoid(tank);
+        //drawEllipsoid(tank);
         //drawEllipsoid(dudes[0].bounder);
          
 
@@ -334,7 +435,7 @@ function loadDudes(NumDudes)
 
         for (var j = 1 ; j < NumDudes ; j++) {
             var id = dudes.length;
-            dudes[id] = cloneModel(dudes[0], "name#" + id);
+            dudes[id] = cloneModel(dudes[0],  id);
              angle += 2 * Math.PI / NumDudes;
             //radius += 5;
             dudes[id].position = new BABYLON.Vector3(Math.sin(angle) * radius, dudes[0].position.y, -1 * Math.cos(angle) * radius);
@@ -351,7 +452,8 @@ function loadDudes(NumDudes)
 function cloneModel(model,name) {
     var tempClone;
     tempClone = model.clone("clone_" + name);
-    tempClone.bounder = model.bounder.clone("bounder_custom" + name);
+    tempClone.bounder = model.bounder.clone("bounder");
+    tempClone.bounder.dude = tempClone;
     tempClone.skeletons = [];
     for (var i = 0; i < model.skeletons.length; i += 1) {
         tempClone.skeletons[i] = model.skeletons[i].clone("skeleton clone #" + name +  i);
@@ -447,9 +549,9 @@ function calculateBoundingBoxOfCompositeMeshes(newMeshes) {
     var _lengthZ = (minz * maxz > 1) ? Math.abs(maxz - minz) : Math.abs(minz * -1 + maxz);
     var _center = new BABYLON.Vector3((minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0);
 
-    var _boxMesh = BABYLON.Mesh.CreateBox("box", 1, scene);
-    _boxMesh.scaling.x = _lengthX/30.0;
-    _boxMesh.scaling.y = _lengthY /5.0;
+    var _boxMesh = BABYLON.Mesh.CreateBox("bounder", 1, scene);
+    _boxMesh.scaling.x = _lengthX/35.0;
+    _boxMesh.scaling.y = _lengthY /10.0;
     _boxMesh.scaling.z = _lengthZ / 10.0;
     _boxMesh.position.y += .5; // if I increase this, the dude gets higher in the skyyyyy
     _boxMesh.checkCollisions = true;
@@ -479,3 +581,25 @@ function drawEllipsoid(mesh) {
     ellipsoid.parent = mesh;
     ellipsoid.computeWorldMatrix(true);
 }
+
+
+
+// Event listener when the pointerlock is updated (or removed by pressing ESC for example).
+var pointerlockchange = function () {
+    var controlEnabled = document.mozPointerLockElement || document.webkitPointerLockElement || document.msPointerLockElement || document.pointerLockElement || null;
+
+    // If the user is already locked
+    if (!controlEnabled) {
+        //camera.detachControl(canvas);
+        isLocked = false;
+    } else {
+        //camera.attachControl(canvas);
+        isLocked = true;
+    }
+};
+
+// Attach events to the document
+document.addEventListener("pointerlockchange", pointerlockchange, false);
+document.addEventListener("mspointerlockchange", pointerlockchange, false);
+document.addEventListener("mozpointerlockchange", pointerlockchange, false);
+document.addEventListener("webkitpointerlockchange", pointerlockchange, false);
