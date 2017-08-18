@@ -14,6 +14,7 @@ var Game = {};
  var isDPressed = false;
  var isAPressed = false;
  var isBPressed = false;
+ var isRPressed = false;
  var isCPressedAndReleased = false;
  var isFPressedAndReleased = false;
 
@@ -24,12 +25,14 @@ var Game = {};
 
 Game.createFirstScene = function()
 {
-    var tank;
+    
+    var tank; 
     var dudes = [];
     var scene = new BABYLON.Scene(engine);
 
     scene.collisionsEnabled = true;
     scene.gravity = new BABYLON.Vector3(0, -10, 0);
+    scene.enablePhysics(scene.gravity, new BABYLON.CannonJSPlugin());
 
     var freeCamera = createFreeCamera(scene);
     //   freeCamera.attachControl(canvas);
@@ -131,7 +134,31 @@ Game.createFirstScene = function()
             var CannonBall = BABYLON.Mesh.CreateSphere("s", 30, 1, scene, false);
             CannonBall.position = tank.position.add(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(15, 0, 15)));
             CannonBall.physicsImpostor = new BABYLON.PhysicsImpostor(CannonBall, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 5, friction: 10, restitution: .2 }, scene);
-            CannonBall.physicsImpostor.setLinearVelocity(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(1000, 0, 1000)));
+            CannonBall.physicsImpostor.
+                setLinearVelocity(BABYLON.Vector3.Zero().add(tank.frontVector.normalize().multiplyByFloats(1000, 0, 1000)));
+        
+            CannonBall.actionManager =
+                new BABYLON.ActionManager(scene);
+
+            dudes.forEach(function (dude)
+
+            {
+                CannonBall.actionManager.registerAction
+                (new BABYLON.ExecuteCodeAction(
+                {
+                    trigger: BABYLON.ActionManager.OnIntersectionEnterTrigger,
+                    parameter: dude.bounder
+                }, function () {
+
+                dude.bounder.dispose();
+                dude.dispose();
+
+    }));
+
+            }
+
+            );
+
 
             setTimeout(function () {
                 CannonBall.dispose();
@@ -139,6 +166,36 @@ Game.createFirstScene = function()
         }
     }
 
+    Game.scenes[sceneIndex].checkEmitRaysFromTank =
+        function (tank, scene)
+        {
+            if(isRPressed)
+            {
+                console.log("here");    
+                var origin = tank.position;
+                var direction = tank.frontVector;
+                direction.y = 0;
+
+                var ray = new BABYLON.Ray(origin, direction, 1000);
+
+                
+                var rayHelper = new BABYLON.RayHelper(ray);
+                rayHelper.show(scene);
+
+                var pickResult = scene.pickWithRay(ray);
+
+                if(pickResult.pickedMesh)
+                {
+                    console.log(pickResult.pickedMesh.name);
+                    if(pickResult.pickedMesh.name == "dudebox")
+                    {
+                        pickResult.pickedMesh.dispose();
+                        pickResult.pickedMesh.dude.dispose();
+                    }
+                }
+
+            }
+    }
     Game.scenes[sceneIndex].checkMoveToNextLevel = function (tank, portal) {
         if (
             tank.position.x > portal.position.x - 3 &&
@@ -154,6 +211,7 @@ Game.createFirstScene = function()
         this.applyTankMovements(tank);
         this.checkMoveToNextLevel(tank, portal);
         this.checkEmitCannonBallsFromTank(tank, scene);
+        this.checkEmitRaysFromTank(tank, scene);
         dudes.forEach(function (dude, index) {
             Game.scenes[sceneIndex].updateDudeOrientationsAndRotations(dude, tank);
         });
@@ -301,6 +359,8 @@ function startGame() {
             engine.hideLoadingUI();
         }
         else return;
+
+
         Game.scenes[Game.activeScene].renderLoop();
     });
 
@@ -342,6 +402,10 @@ function createConfiguredGround(heightMapPath, diffuseMapPath, diffuseColor, sce
     function onGroundCreated() {
         ground.material = groundMaterial;
         ground.checkCollisions = true;
+        ground.physicsImpostor =
+            new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.HeightmapImpostor,
+            { mass: 0, friction: 10, restitution: .2 }, scene);
+        ground.isPickable = false;
     }
 
     return ground;
@@ -370,7 +434,7 @@ function createHero(color, scene) {
     tank.frontVector = new BABYLON.Vector3(0, 0, -1);
     tank.checkCollisions = true;
     tank.applyGravity = true;
-    //  tank.onCollide = function(mesh){console.log("tank collided with " + mesh.name)}
+    tank.isPickable = false;
     return tank;
 }
 
@@ -439,6 +503,7 @@ function loadDudes(NumDudes,dudes,scene) {
 
         var boundingBox = calculateAndMakeBoundingBoxOfCompositeMeshes(newMeshes, scene);
         dudes[0].bounder = boundingBox.boxMesh;
+        dudes[0].bounder.dude = dudes[0];
         dudes[0].bounder.ellipsoidOffset.y += 3; // if I make this += 10 , no collision happens (better performance), but they merge
         // if I make it +=2 , they are visually good, but very bad performance (actually bad performance when I console.log in the onCollide)
         // if I make it += 1 , very very bad performance as it is constantly in collision with the ground
@@ -487,7 +552,8 @@ function loadDudes(NumDudes,dudes,scene) {
 function cloneModel(model, name, scene) {
     var tempClone;
     tempClone = model.clone("clone_" + name);
-    tempClone.bounder = model.bounder.clone("bounder_custom" + name);
+    tempClone.bounder = model.bounder.clone("dudebox");
+    tempClone.bounder.dude = tempClone;
     tempClone.skeletons = [];
     for (var i = 0; i < model.skeletons.length; i += 1) {
         tempClone.skeletons[i] = model.skeletons[i].clone("skeleton clone #" + name + i);
@@ -548,15 +614,15 @@ function calculateAndMakeBoundingBoxOfCompositeMeshes(newMeshes, scene) {
     var _lengthZ = (minz * maxz > 1) ? Math.abs(maxz - minz) : Math.abs(minz * -1 + maxz);
     var _center = new BABYLON.Vector3((minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0);
 
-    var _boxMesh = BABYLON.Mesh.CreateBox("box", 1, scene);
+    var _boxMesh = BABYLON.Mesh.CreateBox("dudebox", 1, scene);
     _boxMesh.scaling.x = _lengthX / 30.0;
     _boxMesh.scaling.y = _lengthY / 5.0;
     _boxMesh.scaling.z = _lengthZ / 10.0;
     _boxMesh.position.y += .5; // if I increase this, the dude gets higher in the skyyyyy
     _boxMesh.checkCollisions = true;
     _boxMesh.material = new BABYLON.StandardMaterial("alpha", scene);
-    _boxMesh.material.alpha = .2;
-    _boxMesh.isVisible = false;
+    _boxMesh.material.alpha = .4;
+    _boxMesh.isVisible = true;
 
     return { min: { x: minx, y: miny, z: minz }, max: { x: maxx, y: maxy, z: maxz }, lengthX: _lengthX, lengthY: _lengthY, lengthZ: _lengthZ, center: _center, boxMesh: _boxMesh };
 
@@ -600,6 +666,9 @@ document.addEventListener("keyup", function () {
     if (event.key == 'b' || event.key == 'B') {
         isBPressed = false;
     }
+    if (event.key == 'r' || event.key == 'R') {
+        isRPressed = false;
+    }
 
     if (event.key == 'c' || event.key == 'C') {
         isCPressedAndReleased = true;
@@ -631,6 +700,9 @@ document.addEventListener("keydown", function () {
     }
     if (event.key == 'b' || event.key == 'B') {
         isBPressed = true;
+    }
+    if (event.key == 'r' || event.key == 'R') {
+        isRPressed = true;
     }
 
 });
