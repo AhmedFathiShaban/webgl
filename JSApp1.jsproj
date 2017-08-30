@@ -68,6 +68,7 @@
     <Content Include="js\qrcode.js" />
     <Content Include="js\randomTests.js" />
     <Content Include="js\randomTestsHome.js" />
+    <Content Include="js\randomTestsLocal.js" />
     <Content Include="js\webgl3.js" />
     <Content Include="js\webgl4.js" />
     <Content Include="js\webgl5Textures.js" />
@@ -75,6 +76,7 @@
     <Content Include="multiplayer\server.js" />
     <Content Include="randomTests.html" />
     <Content Include="randomTestsHome.html" />
+    <Content Include="randomTestsLocal.html" />
     <Content Include="scenes\0.jpg" />
     <Content Include="scenes\1.jpg" />
     <Content Include="scenes\2.jpg" />

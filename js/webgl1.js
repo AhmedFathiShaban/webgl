@@ -1,17 +1,15 @@
 ﻿
-
-
 document.addEventListener("DOMContentLoaded", start);
 
 function start() {
 
     var canvas = document.getElementById("renderCanvas");
-    var gl = canvas.getContext("webgl");
+    var gl = canvas.getContext("webgl2");
 
 
     var triangleVertexPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-    var vertices = [ 
+    var vertices = [
          0.0, 1.0, 0.0,
         -1.0, -1.0, 0.0,
          1.0, -1.0, 0.0
@@ -54,32 +52,38 @@ function start() {
 
     gl.useProgram(shaderProgram);
 
+    var vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+
+
     var vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "position");
     gl.enableVertexAttribArray(vertexPositionAttribute);
+    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
+    //void gl.vertexAttribPointer(index, size, type, normalized, stride, offset);
+    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
     var vertexColorAttribute = gl.getAttribLocation(shaderProgram, "color");
     gl.enableVertexAttribArray(vertexColorAttribute);
-
+    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexColorBuffer);
+    gl.vertexAttribPointer(vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
 
 
     var FLOAT_SIZE = 4;
+
+
+
+    //// Alternatively do :: 
+    //gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionsAndColorsBuffer);
+    //gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 7*FLOAT_SIZE, 0);
+    //gl.vertexAttribPointer(vertexColorAttribute, 4, gl.FLOAT, false, 7*FLOAT_SIZE, 3*FLOAT_SIZE);
+
+
 
     function renderLoop() {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.clearColor(0, 0, 0, 1);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-        gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexColorBuffer);
-        gl.vertexAttribPointer(vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
-
-        
-        //void gl.vertexAttribPointer(index, size, type, normalized, stride, offset);
-
-        //// Alternatively do :: 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionsAndColorsBuffer);
-        //gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 7*FLOAT_SIZE, 0);
-        //gl.vertexAttribPointer(vertexColorAttribute, 4, gl.FLOAT, false, 7*FLOAT_SIZE, 3*FLOAT_SIZE);
+        gl.bindVertexArray(vao);
 
         gl.drawArrays(gl.TRIANGLES, 0, 3);
 
@@ -106,7 +110,8 @@ function start() {
             return null;
         }
 
-        gl.shaderSource(shader, shaderScript.text);
+        gl.shaderSource(shader, shaderScript.text.trim());
+        console.log("text :" + shaderScript.text.trim());
         gl.compileShader(shader);
 
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {

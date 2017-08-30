@@ -154,7 +154,7 @@ function startGame() {
 
      assetsManager.onFinish = function (tasks) {
 
-         setTimeout(function () { animationStopOk = true; }, 1000    );
+         setTimeout(function () { animationStopOk = true; }, 1000 );
     
              engine.runRenderLoop(function () {
 

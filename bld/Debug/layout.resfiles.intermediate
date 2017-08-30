@@ -20,13 +20,17 @@ js\glMatrix-0.9.5.min.js
 js\qrcode.js
 js\randomTests.js
 js\randomTestsHome.js
+js\randomTestsLocal.js
 js\webgl1.js
 js\webgl2.js
 js\webgl3.js
 js\webgl4.js
 js\webgl5Textures.js
+multiplayer\index.html
+multiplayer\server.js
 randomTests.html
 randomTestsHome.html
+randomTestsLocal.html
 scenes\0.jpg
 scenes\1.jpg
 scenes\2.jpg
